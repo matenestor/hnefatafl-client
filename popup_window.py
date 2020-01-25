@@ -1,7 +1,5 @@
 import tkinter as tk
 
-from main_window import Menu
-
 
 class Popup(tk.Toplevel):
     def __init__(self, msg, controller):
@@ -9,6 +7,7 @@ class Popup(tk.Toplevel):
 
         self.title("Info message")
         self.geometry("320x160")
+        self.resizable(False, False)
 
         # message in popup window
         lbl_message = tk.Label(self, text=msg)
@@ -19,5 +18,5 @@ class Popup(tk.Toplevel):
         btn_main_menu.pack(side="bottom")
 
     def main_menu(self, controller):
-        controller.show_frame(Menu)
+        controller.show_frame("Menu")
         self.destroy()

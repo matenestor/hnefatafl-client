@@ -1,5 +1,5 @@
 import tkinter as tk
-from enum import Enum
+from ups_state import HnefClick
 
 F_EMPTY = 0
 F_THRONE = 1
@@ -21,12 +21,6 @@ pf = [
     [F_EMPTY,  F_EMPTY, F_EMPTY, F_EMPTY, F_EMPTY, S_BLACK, F_EMPTY, F_EMPTY, F_EMPTY, F_EMPTY, F_EMPTY],
     [F_ESCAPE, F_EMPTY, F_EMPTY, S_BLACK, S_BLACK, S_BLACK, S_BLACK, S_BLACK, F_EMPTY, F_EMPTY, F_ESCAPE]
 ]
-
-
-class HnefClick(Enum):
-    THINKING = 0
-    CLICKED = 1
-    WAITING = 2
 
 
 class Game(tk.Frame):
@@ -79,14 +73,16 @@ class Game(tk.Frame):
         self.ent_chat = tk.Entry(self)
 
         # buttons
-        self.btn_chat = tk.Button(self, text="Send", command=lambda: controller.show_frame("Menu"))
-        self.btn_leave = tk.Button(self, text="Leave", command=lambda: controller.show_popup("success"))
+        self.btn_chat = tk.Button(self, text="Send", command=self.chat)
+        self.btn_leave = tk.Button(self, text="Leave", command=lambda: self.leave_game(controller))
+
+        tk.Button(self, text="popup", command=lambda: controller.show_popup("leave game")).grid()
 
         self.setup_gui()
 
     def setup_gui(self):
         # canvas
-        self.canvas.grid(row=0, rowspan=3)
+        # self.canvas.grid(row=0, rowspan=3)
         self.canvas.bind("<Button-1>", self.move)
         self.canvas.create_image(0, 0, anchor=tk.NW, image=self.res_pf)
 
@@ -102,18 +98,28 @@ class Game(tk.Frame):
         # draw rest of the board
         self.draw_hnef()
 
-    def chat(self, _):
+    def chat(self, _=None):
         msg = self.ent_chat.get()
 
         if msg == "iddqd":
             # TODO easteregg
+            self.ent_chat.delete(0, tk.END)
             pass
 
         elif msg != "":
+            # in order to insert into text widget, it has to be set to NORMAL at first
             self.txt_chat["state"] = tk.NORMAL
             self.txt_chat.insert(tk.END, msg + "\n")
             self.txt_chat["state"] = tk.DISABLED
             self.ent_chat.delete(0, tk.END)
+            # TODO send chat msg
+
+    def leave_game(self, cont):
+        # TODO send msg about leaving
+        cont.show_frame("Menu")
+
+    def move(self, _):
+        pass
 
     def draw_hnef(self):
         if self.egg:
@@ -142,9 +148,6 @@ class Game(tk.Frame):
                     self.canvas.create_image(pos_x, pos_y, anchor=tk.NW, image=res_white)
                 elif field == S_KING:
                     self.canvas.create_image(pos_x, pos_y, anchor=tk.NW, image=res_king)
-
-    def move(self, _):
-        pass
 
     def btns_disable(self):
         self.btn_chat["state"] = tk.DISABLED

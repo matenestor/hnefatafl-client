@@ -20,10 +20,10 @@ class Hnefatafl(tk.Tk):
         # initialize frames
         for F in (Menu, Game):
             frame = F(container, self)
-            self.frames[F] = frame
+            self.frames[F.__name__] = frame
 
         # actual frame, used during switching to other frame
-        self.actual_frame = self.frames[Menu]
+        self.actual_frame = self.frames["Menu"]
         # show main menu
         self.show_frame("Menu")
         # start the application
@@ -33,13 +33,9 @@ class Hnefatafl(tk.Tk):
         # forget actual frame
         self.actual_frame.pack_forget()
 
-        if cont == "Menu":
-            frame = self.frames[Menu]
-        elif cont == "Game":
-            frame = self.frames[Game]
-        else:
-            frame = None
-        assert frame is not None, f"Unknown frame to raise! {cont}"
+        # get frame to change to
+        frame = self.frames[cont]
+        assert frame is not None, f"Unknown frame to raise! '{cont}'"
 
         # set new actual frame
         self.actual_frame = frame
@@ -47,7 +43,8 @@ class Hnefatafl(tk.Tk):
         frame.pack()
 
     def show_popup(self, msg):
-        # TODO disable chat and leave button
+        # TODO do not forget to enable the buttons again on new game
+        self.frames["Game"].btns_disable()
         Popup(msg, self)
 
 
