@@ -1,6 +1,7 @@
 import re
 import tkinter as tk
 
+from app import logger
 from app.net import protocol
 from app.game.hnefatafl_square import Square
 from app.gui.click_state import Click
@@ -108,10 +109,12 @@ class Game(tk.Frame):
         self._txt_chat["state"] = tk.NORMAL
         self._txt_chat.insert(tk.END, msg + "\n")
         self._txt_chat["state"] = tk.DISABLED
+        logger.info("Chat message: {}".format(msg))
 
     def leave_game(self):
         self._controller.send_to_server(protocol.CC_LEAV)
         self._controller.leave_game()
+        logger.info("Local player {} leaves the game.".format(self.chat_nick_self))
 
     def _click(self, event):
         # calculate position of field from clicked place on screen
