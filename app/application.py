@@ -1,12 +1,10 @@
 import signal
-from threading import Thread
 
-import logger
-import protocol
-from gui import Gui
-from hnefatafl import Hnefatafl
-from network import Network
-from ups_state import Click, ServerConnection
+from app import logger
+from app.net import protocol
+from app.gui.gui import Gui
+from app.game.hnefatafl import Hnefatafl
+from app.gui.click_state import Click
 
 
 class Application:

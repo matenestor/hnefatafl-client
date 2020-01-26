@@ -6,9 +6,3 @@ class ServerConnection(Enum):
     PING = 1
     LOST = 2
     DOWN = 3
-
-
-class Click(Enum):
-    THINKING = 0
-    CLICKED = 1
-    WAITING = 2

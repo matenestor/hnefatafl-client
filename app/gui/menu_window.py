@@ -1,7 +1,7 @@
 import re
 import tkinter as tk
 
-import protocol
+from app.net import protocol
 
 
 class Menu(tk.Frame):

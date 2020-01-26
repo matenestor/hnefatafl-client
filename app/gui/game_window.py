@@ -1,9 +1,9 @@
 import re
 import tkinter as tk
 
-import protocol
-from hnefatafl_square import Square
-from ups_state import Click
+from app.net import protocol
+from app.game.hnefatafl_square import Square
+from app.gui.click_state import Click
 
 
 class Game(tk.Frame):

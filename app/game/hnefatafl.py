@@ -1,5 +1,5 @@
-from hnefatafl_square import Square
-from ups_state import Click
+from app.game.hnefatafl_square import Square
+from app.gui.click_state import Click
 
 
 class Hnefatafl:

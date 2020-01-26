@@ -1,8 +1,8 @@
 import tkinter as tk
 
-from game_window import Game
-from menu_window import Menu
-from popup_window import Popup
+from app.gui.game_window import Game
+from app.gui.menu_window import Menu
+from app.gui.popup_window import Popup
 
 
 class Gui(tk.Tk):
