@@ -1,5 +1,3 @@
-import logger
-
 OP_SOH = "{"                # start of header
 OP_EOT = "}"                # end of transmission
 OP_SEP = ","                # separator
@@ -9,8 +7,8 @@ OP_PONG = "<"               # acknowledge
 
 OP_CHAT = "ch"              # chat
 
-CC_OK = "ok"                # message understood by client
 CC_CONN = "c"               # connect
+CC_READY = "rd"             # ready
 CC_MOVE = "m"               # move
 CC_LEAV = "l"               # leave game
 
@@ -40,5 +38,5 @@ SC_SHDW = "s"               # server shutdown
 RGX_VALID_FORMAT = "(?:\{(?:<|>|rc|rr,il|rr,ig,(?:ty|to),on:\w{3,20},pf:\d{100}|rl|il|ig,(?:ty|to),on:\w{3,20}|mv|gw|gl|om:\d{8}|ol|od|or|og|t|u|k|s|ch:[\w\s.!?]{1,100})\})+"
 RGX_VALID_DATA =           "<|>|rc|rr,il|rr,ig,(?:ty|to),on:\w{3,20},pf:\d{100}|rl|il|ig,(?:ty|to),on:\w{3,20}|mv|gw|gl|om:\d{8}|ol|od|or|og|t|u|k|s|ch:[\w\s.!?]{1,100}"
 
-# server regex -- valid format: (?:\{(?:<|>|c:\w{3,20}|m:\d{8}|l|ok|ch:[\w\s.!?]{1,100})\})+
-# server regex -- valid data:           <|>|c:\w{3,20}|m:\d{8}|l|ok|ch:[\w\s.!?]{1,100}    ..in curly brackets
+# server regex -- valid format: (?:\{(?:<|>|c:\w{3,20}|rd|m:\d{8}|l|ok|ch:[\w\s.!?]{1,100})\})+
+# server regex -- valid data:           <|>|c:\w{3,20}|rd|m:\d{8}|l|ok|ch:[\w\s.!?]{1,100}    ..in curly brackets

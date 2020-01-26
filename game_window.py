@@ -1,154 +1,167 @@
+import re
 import tkinter as tk
-from ups_state import HnefClick
 
-F_EMPTY = 0
-F_THRONE = 1
-F_ESCAPE = 2
-S_BLACK = 3
-S_WHITE = 4
-S_KING = 5
-
-pf = [
-    [F_ESCAPE, F_EMPTY, F_EMPTY, S_BLACK, S_BLACK, S_BLACK, S_BLACK, S_BLACK, F_EMPTY, F_EMPTY, F_ESCAPE],
-    [F_EMPTY,  F_EMPTY, F_EMPTY, F_EMPTY, F_EMPTY, S_BLACK, F_EMPTY, F_EMPTY, F_EMPTY, F_EMPTY, F_EMPTY],
-    [F_EMPTY,  F_EMPTY, F_EMPTY, F_EMPTY, F_EMPTY, F_EMPTY, F_EMPTY, F_EMPTY, F_EMPTY, F_EMPTY, F_EMPTY],
-    [S_BLACK,  F_EMPTY, F_EMPTY, F_EMPTY, F_EMPTY, S_WHITE, F_EMPTY, F_EMPTY, F_EMPTY, F_EMPTY, S_BLACK],
-    [S_BLACK,  F_EMPTY, F_EMPTY, F_EMPTY, S_WHITE, S_WHITE, S_WHITE, F_EMPTY, F_EMPTY, F_EMPTY, S_BLACK],
-    [S_BLACK,  S_BLACK, F_EMPTY, S_WHITE, S_WHITE, S_KING,  S_WHITE, S_WHITE, F_EMPTY, S_BLACK, S_BLACK],
-    [S_BLACK,  F_EMPTY, F_EMPTY, F_EMPTY, S_WHITE, S_WHITE, S_WHITE, F_EMPTY, F_EMPTY, F_EMPTY, S_BLACK],
-    [S_BLACK,  F_EMPTY, F_EMPTY, F_EMPTY, F_EMPTY, S_WHITE, F_EMPTY, F_EMPTY, F_EMPTY, F_EMPTY, S_BLACK],
-    [F_EMPTY,  F_EMPTY, F_EMPTY, F_EMPTY, F_EMPTY, F_EMPTY, F_EMPTY, F_EMPTY, F_EMPTY, F_EMPTY, F_EMPTY],
-    [F_EMPTY,  F_EMPTY, F_EMPTY, F_EMPTY, F_EMPTY, S_BLACK, F_EMPTY, F_EMPTY, F_EMPTY, F_EMPTY, F_EMPTY],
-    [F_ESCAPE, F_EMPTY, F_EMPTY, S_BLACK, S_BLACK, S_BLACK, S_BLACK, S_BLACK, F_EMPTY, F_EMPTY, F_ESCAPE]
-]
+import protocol
+from hnefatafl_square import Square
+from ups_state import Click
 
 
 class Game(tk.Frame):
     # sprites location
-    __RES = "sprites/"
-    __R_PF = __RES + "pf.gif"
-    __R_EMPTY = __RES + "empty.gif"
-    __R_ESCAPE = __RES + "escape.gif"
-    __R_THRONE = __RES + "throne.gif"
-    __R_MOVE = __RES + "move.gif"
-    __R_BLACK = __RES + "black.gif"
-    __R_WHITE = __RES + "white.gif"
-    __R_KING = __RES + "king.gif"
-    __R_BLACKEGG = __RES + "blackegg.gif"
-    __R_WHITEEGG = __RES + "whiteegg.gif"
-    __R_KINGEGG = __RES + "kingegg.gif"
+    _RES = "sprites/"
+    _R_PF = _RES + "pf.gif"
+    _R_EMPTY = _RES + "empty.gif"
+    _R_ESCAPE = _RES + "escape.gif"
+    _R_THRONE = _RES + "throne.gif"
+    _R_MOVE = _RES + "move.gif"
+    _R_BLACK = _RES + "black.gif"
+    _R_WHITE = _RES + "white.gif"
+    _R_KING = _RES + "king.gif"
+    _R_BLACKEGG = _RES + "blackegg.gif"
+    _R_WHITEEGG = _RES + "whiteegg.gif"
+    _R_KINGEGG = _RES + "kingegg.gif"
+
+    # chat template for nicks
+    CH_TMPL = "[{}]: "
+    # chat name for system messages
+    _CH_BOT = CH_TMPL.format("BOT")
 
     # border of playfield desk
-    __OFFSET = 21
-    __FIELD_SIZE = 69
-    __WIDTH = 801
-    __HEIGHT = 801
+    _OFFSET = 21
+    _FIELD_SIZE = 69
+    _WIDTH = 801
+    _HEIGHT = 801
 
-    def __init__(self, parent, controller):
+    def __init__(self, parent, cont):
         super().__init__(parent)
 
+        # controller of this class
+        self._controller = cont
+
         # resources
-        self.res_pf = tk.PhotoImage(file=self.__R_PF)
-        self.res_empty = tk.PhotoImage(file=self.__R_EMPTY)
-        self.res_escape = tk.PhotoImage(file=self.__R_ESCAPE)
-        self.res_throne = tk.PhotoImage(file=self.__R_THRONE)
-        self.res_move = tk.PhotoImage(file=self.__R_MOVE)
-        self.img_black = tk.PhotoImage(file=self.__R_BLACK)
-        self.img_white = tk.PhotoImage(file=self.__R_WHITE)
-        self.img_king = tk.PhotoImage(file=self.__R_KING)
-        self.img_blackegg = tk.PhotoImage(file=self.__R_BLACKEGG)
-        self.img_whiteegg = tk.PhotoImage(file=self.__R_WHITEEGG)
-        self.img_kingegg = tk.PhotoImage(file=self.__R_KINGEGG)
+        self._res_pf = tk.PhotoImage(file=Game._R_PF)
+        self._res_empty = tk.PhotoImage(file=Game._R_EMPTY)
+        self._res_escape = tk.PhotoImage(file=Game._R_ESCAPE)
+        self._res_throne = tk.PhotoImage(file=Game._R_THRONE)
+        self._res_move = tk.PhotoImage(file=Game._R_MOVE)
+        self._img_black = tk.PhotoImage(file=Game._R_BLACK)
+        self._img_white = tk.PhotoImage(file=Game._R_WHITE)
+        self._img_king = tk.PhotoImage(file=Game._R_KING)
+        self._img_blackegg = tk.PhotoImage(file=Game._R_BLACKEGG)
+        self._img_whiteegg = tk.PhotoImage(file=Game._R_WHITEEGG)
+        self._img_kingegg = tk.PhotoImage(file=Game._R_KINGEGG)
 
         # state flags
-        self.state = HnefClick.THINKING
-        self.on_turn = None
-        self.egg = False
+        self._egg = False
+
+        # chat name
+        self.chat_nick_self = None
 
         # playfield
-        self.canvas = tk.Canvas(self, width=self.__WIDTH, height=self.__HEIGHT)
+        self._canvas = tk.Canvas(self, width=Game._WIDTH, height=Game._HEIGHT)
 
         # chatting
-        self.txt_chat = tk.Text(self, width=40, height=45, borderwidth=3, state=tk.DISABLED)
-        self.ent_chat = tk.Entry(self)
+        self._txt_chat = tk.Text(self, width=38, height=45, borderwidth=3, state=tk.DISABLED)
+        self._ent_chat = tk.Entry(self)
 
         # buttons
-        self.btn_chat = tk.Button(self, text="Send", command=self.chat)
-        self.btn_leave = tk.Button(self, text="Leave", command=lambda: self.leave_game(controller))
+        self._btn_chat = tk.Button(self, text="Send", command=self._chat)
+        self._btn_leave = tk.Button(self, text="Leave", command=self.leave_game)
 
-        tk.Button(self, text="popup", command=lambda: controller.show_popup("leave game")).grid()
+        self._setup_gui()
 
-        self.setup_gui()
-
-    def setup_gui(self):
+    def _setup_gui(self):
         # canvas
-        # self.canvas.grid(row=0, rowspan=3)
-        self.canvas.bind("<Button-1>", self.move)
-        self.canvas.create_image(0, 0, anchor=tk.NW, image=self.res_pf)
+        self._canvas.grid(row=0, rowspan=3)
 
         # chatting
-        self.txt_chat.grid(row=0, column=1, columnspan=4)
-        self.ent_chat.grid(row=1, column=1, columnspan=4, sticky="ew")
-        self.ent_chat.bind("<Return>", self.chat)
-        self.btn_chat.grid(row=2, column=1, columnspan=3, sticky="ew")
+        self._txt_chat.grid(row=0, column=1, columnspan=4)
+        self._ent_chat.grid(row=1, column=1, columnspan=4, sticky="ew")
+        self._ent_chat.bind("<Return>", self._chat)
+        self._btn_chat.grid(row=2, column=1, columnspan=3, sticky="ew")
+        self.chat_insert(Game._CH_BOT + "Only letters, numbers and _.!? characters allowed during chatting.")
 
         # leave game button
-        self.btn_leave.grid(row=2, column=4, sticky="ew")
+        self._btn_leave.grid(row=2, column=4, sticky="ew")
 
-        # draw rest of the board
-        self.draw_hnef()
-
-    def chat(self, _=None):
-        msg = self.ent_chat.get()
+    def _chat(self, _=None):
+        # get text from entry
+        msg = self._ent_chat.get()
+        # filter from unwanted characters
+        msg = re.sub(r"[^\w\s.!?]+", " ", msg).strip()
 
         if msg == "iddqd":
-            # TODO easteregg
-            self.ent_chat.delete(0, tk.END)
-            pass
+            self._egg = not self._egg
+            self._ent_chat.delete(0, tk.END)
 
         elif msg != "":
-            # in order to insert into text widget, it has to be set to NORMAL at first
-            self.txt_chat["state"] = tk.NORMAL
-            self.txt_chat.insert(tk.END, msg + "\n")
-            self.txt_chat["state"] = tk.DISABLED
-            self.ent_chat.delete(0, tk.END)
-            # TODO send chat msg
+            self.chat_insert(self.chat_nick_self + msg)
+            self._ent_chat.delete(0, tk.END)
+            self._controller.send_to_server(protocol.OP_CHAT, value=msg)
 
-    def leave_game(self, cont):
-        # TODO send msg about leaving
-        cont.show_frame("Menu")
+    def chat_insert(self, msg):
+        # in order to insert into text widget, it has to be set to NORMAL at first
+        self._txt_chat["state"] = tk.NORMAL
+        self._txt_chat.insert(tk.END, msg + "\n")
+        self._txt_chat["state"] = tk.DISABLED
 
-    def move(self, _):
-        pass
+    def leave_game(self):
+        self._controller.send_to_server(protocol.CC_LEAV)
+        self._controller.leave_game()
 
-    def draw_hnef(self):
-        if self.egg:
-            res_black = self.img_blackegg
-            res_white = self.img_whiteegg
-            res_king = self.img_kingegg
+    def _click(self, event):
+        # calculate position of field from clicked place on screen
+        x_pos = (event.x - Game._OFFSET) // Game._FIELD_SIZE
+        y_pos = (event.y - Game._OFFSET) // Game._FIELD_SIZE
+        self._controller.handle_click(x_pos, y_pos)
+
+    def draw_hnef(self, game_state, pf, allowed_squares):
+        # set sprites from resources, according to easter-egg
+        if self._egg:
+            res_black = self._img_blackegg
+            res_white = self._img_whiteegg
+            res_king = self._img_kingegg
         else:
-            res_black = self.img_black
-            res_white = self.img_white
-            res_king = self.img_king
+            res_black = self._img_black
+            res_white = self._img_white
+            res_king = self._img_king
 
+        # draw board
+        self._canvas.create_image(0, 0, anchor=tk.NW, image=self._res_pf)
+
+        # draw squares
         for i, row in enumerate(pf):
             for j, field in enumerate(row):
-                pos_y = self.__OFFSET + i*self.__FIELD_SIZE
-                pos_x = self.__OFFSET + j*self.__FIELD_SIZE
+                pos_y = Game._OFFSET + i * Game._FIELD_SIZE
+                pos_x = Game._OFFSET + j * Game._FIELD_SIZE
 
-                if field == F_EMPTY:
-                    self.canvas.create_image(pos_x, pos_y, anchor=tk.NW, image=self.res_empty)
-                elif field == F_ESCAPE:
-                    self.canvas.create_image(pos_x, pos_y, anchor=tk.NW, image=self.res_escape)
-                elif field == F_THRONE:
-                    self.canvas.create_image(pos_x, pos_y, anchor=tk.NW, image=self.res_throne)
-                elif field == S_BLACK:
-                    self.canvas.create_image(pos_x, pos_y, anchor=tk.NW, image=res_black)
-                elif field == S_WHITE:
-                    self.canvas.create_image(pos_x, pos_y, anchor=tk.NW, image=res_white)
-                elif field == S_KING:
-                    self.canvas.create_image(pos_x, pos_y, anchor=tk.NW, image=res_king)
+                if field == Square.F_EMPTY:
+                    id_img = self._canvas.create_image(pos_x, pos_y, anchor=tk.NW, image=self._res_move) \
+                        if (i, j) in allowed_squares and game_state == Click.CLICKED \
+                        else self._canvas.create_image(pos_x, pos_y, anchor=tk.NW, image=self._res_empty)
+
+                elif field == Square.F_ESCAPE:
+                    id_img = self._canvas.create_image(pos_x, pos_y, anchor=tk.NW, image=self._res_escape)
+                elif field == Square.F_THRONE:
+                    id_img = self._canvas.create_image(pos_x, pos_y, anchor=tk.NW, image=self._res_throne)
+                elif field == Square.S_BLACK:
+                    id_img = self._canvas.create_image(pos_x, pos_y, anchor=tk.NW, image=res_black)
+                elif field == Square.S_WHITE:
+                    id_img = self._canvas.create_image(pos_x, pos_y, anchor=tk.NW, image=res_white)
+                elif field == Square.S_KING:
+                    id_img = self._canvas.create_image(pos_x, pos_y, anchor=tk.NW, image=res_king)
+                else:
+                    # never should get here
+                    id_img = -1
+
+                # bind squares, which player can click on
+                if (i, j) in allowed_squares:
+                    self._canvas.tag_bind(id_img, "<Button-1>", self._click)
+
+    def btns_enable(self):
+        self._btn_chat["state"] = tk.NORMAL
+        self._btn_leave["state"] = tk.NORMAL
 
     def btns_disable(self):
-        self.btn_chat["state"] = tk.DISABLED
-        self.btn_leave["state"] = tk.DISABLED
+        self._btn_chat["state"] = tk.DISABLED
+        self._btn_leave["state"] = tk.DISABLED
