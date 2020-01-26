@@ -13,7 +13,9 @@ class Game(tk.Frame):
     _R_EMPTY = _RES + "empty.gif"
     _R_ESCAPE = _RES + "escape.gif"
     _R_THRONE = _RES + "throne.gif"
-    _R_MOVE = _RES + "move.gif"
+    _R_MOVE_EMPTY = _RES + "move_empty.gif"
+    _R_MOVE_ESCAPE = _RES + "move_escape.gif"
+    _R_MOVE_THRONE = _RES + "move_throne.gif"
     _R_BLACK = _RES + "black.gif"
     _R_WHITE = _RES + "white.gif"
     _R_KING = _RES + "king.gif"
@@ -43,7 +45,9 @@ class Game(tk.Frame):
         self._res_empty = tk.PhotoImage(file=Game._R_EMPTY)
         self._res_escape = tk.PhotoImage(file=Game._R_ESCAPE)
         self._res_throne = tk.PhotoImage(file=Game._R_THRONE)
-        self._res_move = tk.PhotoImage(file=Game._R_MOVE)
+        self._res_move_empty = tk.PhotoImage(file=Game._R_MOVE_EMPTY)
+        self._res_move_escape = tk.PhotoImage(file=Game._R_MOVE_ESCAPE)
+        self._res_move_throne = tk.PhotoImage(file=Game._R_MOVE_THRONE)
         self._img_black = tk.PhotoImage(file=Game._R_BLACK)
         self._img_white = tk.PhotoImage(file=Game._R_WHITE)
         self._img_king = tk.PhotoImage(file=Game._R_KING)
@@ -136,14 +140,23 @@ class Game(tk.Frame):
                 pos_x = Game._OFFSET + j * Game._FIELD_SIZE
 
                 if field == Square.F_EMPTY:
-                    id_img = self._canvas.create_image(pos_x, pos_y, anchor=tk.NW, image=self._res_move) \
+                    # after player clicked on stone, draw move field sprites, else draw normal one
+                    id_img = self._canvas.create_image(pos_x, pos_y, anchor=tk.NW, image=self._res_move_empty) \
                         if (i, j) in allowed_squares and game_state == Click.CLICKED \
                         else self._canvas.create_image(pos_x, pos_y, anchor=tk.NW, image=self._res_empty)
 
                 elif field == Square.F_ESCAPE:
-                    id_img = self._canvas.create_image(pos_x, pos_y, anchor=tk.NW, image=self._res_escape)
+                    # draw also move escape field sprite for King
+                    id_img = self._canvas.create_image(pos_x, pos_y, anchor=tk.NW, image=self._res_move_escape) \
+                        if (i, j) in allowed_squares and game_state == Click.CLICKED \
+                        else self._canvas.create_image(pos_x, pos_y, anchor=tk.NW, image=self._res_escape)
+
                 elif field == Square.F_THRONE:
-                    id_img = self._canvas.create_image(pos_x, pos_y, anchor=tk.NW, image=self._res_throne)
+                    # and throne field sprite
+                    id_img = self._canvas.create_image(pos_x, pos_y, anchor=tk.NW, image=self._res_move_throne) \
+                        if (i, j) in allowed_squares and game_state == Click.CLICKED \
+                        else self._canvas.create_image(pos_x, pos_y, anchor=tk.NW, image=self._res_throne)
+
                 elif field == Square.S_BLACK:
                     id_img = self._canvas.create_image(pos_x, pos_y, anchor=tk.NW, image=res_black)
                 elif field == Square.S_WHITE:
