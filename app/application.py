@@ -2,6 +2,7 @@ import signal
 
 from app import logger
 from app.net import protocol
+from app.net.network import Network
 from app.gui.gui import Gui
 from app.game.hnefatafl import Hnefatafl
 from app.gui.click_state import Click
@@ -25,7 +26,7 @@ class Application:
 
         # TODO start in thread
         # create client network
-        # self.net = Network(self, ip, port)
+        # self.net = Network()
 
         # create gui
         self.gui = Gui(self)
@@ -125,16 +126,16 @@ class Application:
     def move_self(self, x_from, y_from, x_to, y_to):
         # move chosen stone
         self.hnef.move(x_from, y_from, x_to, y_to)
-        # check captures after move
-        self.hnef.check_captures()
+        # check captures of local player -- capturing white if local is black
+        self.hnef.check_captures(self.hnef.is_surrounded_white if self.hnef.black else self.hnef.is_surrounded_black)
         # after move, player cannot move anything
         self.hnef.allowed_squares.clear()
 
     def _move_opponent(self, x_from, y_from, x_to, y_to):
         # move opponent's piece
         self.hnef.move(x_from, y_from, x_to, y_to)
-        # check captures after move
-        self.hnef.check_captures()
+        # check captures of opponent player -- capturing black if local is black
+        self.hnef.check_captures(self.hnef.is_surrounded_black if self.hnef.black else self.hnef.is_surrounded_white)
         # get pieces of player, who is on turn now
         self.hnef.find_movables_stones()
 
