@@ -1,5 +1,10 @@
 import re
 import tkinter as tk
+try:
+    import pygame
+    MIXER = True
+except (ImportError, ModuleNotFoundError):
+    MIXER = False
 
 from app import logger
 from app.net import protocol
@@ -9,7 +14,7 @@ from app.gui.click_state import Click
 
 class Game(tk.Frame):
     # sprites location
-    _RES = "sprites/"
+    _RES = "resources/"
     _R_PF = _RES + "pf.gif"
     _R_EMPTY = _RES + "empty.gif"
     _R_ESCAPE = _RES + "escape.gif"
@@ -23,6 +28,7 @@ class Game(tk.Frame):
     _R_BLACKEGG = _RES + "blackegg.gif"
     _R_WHITEEGG = _RES + "whiteegg.gif"
     _R_KINGEGG = _RES + "kingegg.gif"
+    _R_BAZINGA = _RES + "bazinga.wav"
 
     # chat template for nicks
     CH_TMPL = "[{}]: "
@@ -55,6 +61,13 @@ class Game(tk.Frame):
         self._img_blackegg = tk.PhotoImage(file=Game._R_BLACKEGG)
         self._img_whiteegg = tk.PhotoImage(file=Game._R_WHITEEGG)
         self._img_kingegg = tk.PhotoImage(file=Game._R_KINGEGG)
+
+        # prepare sound for easter egg
+        if MIXER:
+            pygame.mixer.init()
+            self.baz = pygame.mixer.Sound(Game._R_BAZINGA)
+        else:
+            self.baz = None
 
         # state flags
         self._egg = False
@@ -98,6 +111,10 @@ class Game(tk.Frame):
         if msg == "iddqd":
             self._egg = not self._egg
             self._ent_chat.delete(0, tk.END)
+
+            # play bazinga sound
+            if self._egg and self.baz is not None:
+                self.baz.play()
 
         elif msg != "":
             self.chat_insert(self.chat_nick_self + msg)
