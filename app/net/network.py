@@ -1,5 +1,6 @@
 import select
 import sys
+from threading import Thread
 
 from app import logger
 from app.net import protocol
@@ -7,15 +8,17 @@ from app.net.ups_session import Session
 from app.net.server_connection import ServerConnection
 
 
-class Network:
+class Network(Thread):
     # seconds before timeout on select
     _TIMEOUT = 5
+    # size of buffer for receiving
+    _BUFF_SIZE = 1024
 
-    def __init__(self, ip, port):
-        # server default ip address
-        self.addrIp = ip
-        # server default port
-        self.port = port
+    def __init__(self, cont):
+        super().__init__(daemon=False)
+
+        # application is controller of network
+        self._controller = cont
 
         # received bytes in total
         self.bytes_recv = 0
@@ -26,27 +29,25 @@ class Network:
 
         # buffer to receive to
         self.buffer = ""
-        # size of buffer for receiving
-        self.buffSize = 1024
 
         # clients session to server
         self.sess = None
-
-        logger.info("Client initialized.")
 
     def __del__(self):
         logger.info("Bytes received in total: {}".format(self.bytes_recv))
         logger.info("Bytes sent in total: {}".format(self.bytes_send))
         logger.info("Count of reconnection in total: {}".format(self.cnt_recn))
 
-    def create_session(self):
-        self.sess = Session(self.addrIp, self.port)
+    def _create_session(self):
+        self.sess = Session(self.ip_addr, self.port)
 
     def run(self):
         assert self.sess is not None, "Session is None"
 
+        # TODO while self._controller.is_running:
+
         # get socket from current session
-        sock = self.sess.get_sock()
+        sock = self.sess.sock
 
         # the only socket to read from is server
         sources = [sock]
@@ -75,10 +76,10 @@ class Network:
 
     def receive_msg(self, sess):
         # TODO patch
-        print(sys.stderr, 'received "%s" from %s' % (self.buffer, self.sock.getpeername()))
+        print(sys.stderr, "received [{}] from [{}]".format(self.buffer, self.sess.sock.getpeername()))
 
         try:
-            buffer = sess.get_sock.recv(self.buffSize).decode("utf8")
+            buffer = sess.get_sock.recv(Network._BUFF_SIZE).decode("utf8")
         except:
             logger.debug("fucked on tryexc")
 
@@ -90,7 +91,7 @@ class Network:
     def send_msg(self, sess, _msg):
         # TODO surround with catch
         msg = protocol.OP_SOH + _msg + protocol.OP_EOT
-        self.sock.sendall(msg.encode("utf8"))
+        self.sess.sock.sendall(msg.encode("utf8"))
 
 
 

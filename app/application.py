@@ -11,7 +11,7 @@ from app.gui.click_state import Click
 class Application:
     def __init__(self):
         # register ctrl+c event
-        signal.signal(signal.SIGINT, self.signal_handler)
+        signal.signal(signal.SIGINT, self._signal_handler)
 
         # flag for activity before ctrl+c
         self.is_running = True
@@ -24,20 +24,31 @@ class Application:
         # create Hnefatafl
         self.hnef = Hnefatafl()
 
-        # TODO start in thread
         # create client network
-        # self.net = Network()
+        self.net = Network(self)
 
         # create gui
         self.gui = Gui(self)
-        # start the application -- has to be last command,
-        # because it runs, until the window is closed == everything else freezes
-        self._start_game(True, "opponent")  # TODO remove this line
-        self.gui.mainloop()
 
-    def signal_handler(self, sig, frame):
+    def _signal_handler(self, sig, frame):
         self.is_running = False
         logger.info("Closing client.")
+
+    def run(self):
+        self._start_game(True, "opponent")  # TODO remove this line
+
+        # start network
+        self.net.start()
+
+        # start the application -- has to be last command,
+        # because it runs, until the window is closed == everything else freezes
+        self.gui.mainloop()
+
+        # if windows was closed with button or cross, set flag in standard way
+        self.is_running = False
+
+        # join Network thread
+        self.net.join()
 
     def hnef_connect(self, nick, ip, port):
         self.nick = nick

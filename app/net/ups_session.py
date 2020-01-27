@@ -20,11 +20,9 @@ class Session:
     def socket_create(self):
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-    def get_sock(self):
-        return self.sock
-
-    def is_expired(self):
-        return self.status == ServerConnection.DOWN
+    def reset_socket(self):
+        self.sock.close()
+        self.socket_create()
 
     def connect_to_server(self):
         # TODO also patch
@@ -39,6 +37,5 @@ class Session:
             self.status = ServerConnection.DOWN
             logger.error("Server is not available.")
 
-    def reset_socket(self):
-        self.sock.close()
-        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    def is_expired(self):
+        return self.status == ServerConnection.DOWN
