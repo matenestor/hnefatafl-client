@@ -1,11 +1,11 @@
 import signal
 
-from app import logger
-from app.net import protocol
-from app.net.network import Network
-from app.gui.gui import Gui
-from app.game.hnefatafl import Hnefatafl
-from app.gui.click_state import Click
+import logger
+from net import protocol
+from net.network import Network
+from gui.gui import Gui
+from game.hnefatafl import Hnefatafl
+from gui.click_state import Click
 
 
 class Application:
@@ -32,11 +32,9 @@ class Application:
 
     def _signal_handler(self, sig, frame):
         self.is_running = False
-        logger.info("Closing client.")
+        logger.info("Closing client with ctrl+c.")
 
     def run(self):
-        self._start_game(True, "opponent")  # TODO remove this line
-
         # start network
         self.net.start()
 
@@ -46,26 +44,38 @@ class Application:
 
         # if windows was closed with button or cross, set flag in standard way
         self.is_running = False
+        logger.info("Closing client standard way.")
 
+        # notify network thread, in order to end it
+        with self.net.cv:
+            self.net.cv.notify()
         # join Network thread
         self.net.join()
+
+        # print statistics through lifetime
+        self.net.pr_statistics()
 
     def hnef_connect(self, nick, ip, port):
         self.nick = nick
         self.ip = ip
-        self.port = port
+        self.port = int(port)
 
-        pass
-        # TODO connect to server ! if not connected already !
-        #  on success disable connect button in Menu window
-        #  on failure enable it
+        # connect to server
+        connected = self.net.connect(self.nick, self.ip, self.port)
+
+        if connected:
+            self.gui.make_connected()
+        else:
+            self.gui.make_disconnected()
 
     def send_to_server(self, code, value=None):
-        pass
-        # TODO in Network class send to server
+        self.net.send_msg(code, value)
 
-    def chat_opponent(self, msg):
+    def send_to_chat(self, msg):
         self.gui.chat_opponent(msg, self.hnef.nick_opponent)
+
+    def send_to_menu(self, msg):
+        self.gui.set_state(msg)
 
     def _start_game(self, turn, opn_name):
         # start new game in Hnefatafl class

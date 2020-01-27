@@ -1,8 +1,8 @@
 import tkinter as tk
 
-from app.gui.game_window import Game
-from app.gui.menu_window import Menu
-from app.gui.popup_window import Popup
+from gui.game_window import Game
+from gui.menu_window import Menu
+from gui.popup_window import Popup
 
 
 class Gui(tk.Tk):
@@ -49,6 +49,19 @@ class Gui(tk.Tk):
 
     def hnef_connect(self, nick, ip, port):
         self._controller.hnef_connect(nick, ip, port)
+
+    def make_connected(self):
+        self._frames["Menu"].set_lbl_state("Connected.")
+        self._frames["Menu"].btn_connect_disable()
+        self._frames["Menu"].btn_play_enable()
+
+    def make_disconnected(self):
+        self._frames["Menu"].set_lbl_state("Not connected.")
+        self._frames["Menu"].btn_connect_enable()
+        self._frames["Menu"].btn_play_disable()
+
+    def set_state(self, msg):
+        self._frames["Menu"].set_lbl_state(msg)
 
     def send_to_server(self, code, value=None):
         self._controller.send_to_server(code, value)

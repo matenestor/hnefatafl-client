@@ -1,6 +1,6 @@
-from app import logger
-from app.game.hnefatafl_square import Square
-from app.gui.click_state import Click
+import logger
+from game.hnefatafl_square import Square
+from gui.click_state import Click
 
 
 class Hnefatafl:
@@ -179,44 +179,37 @@ class Hnefatafl:
         if self.x_to + 2 < Hnefatafl._SIZE:
             if surrounded(self.pf[self.y_to][self.x_to + 1], self.pf[self.y_to][self.x_to + 2]):
                 self.pf[self.y_to][self.x_to + 1] = Square.F_EMPTY
-                logger.info("{} player captures warrior on field {}.{}".format(
-                    # check_captures() is called after move(), where variable on_turn is switched,
-                    # so here local player is not on turn already, thus 'Local' if not on turn..
-                    "Local" if not self.on_turn else "Opponent", self.y_to, self.x_to + 1))
+                # check_captures() is called after move(), where variable on_turn is switched,
+                # so here local player is not on turn already, thus 'Local' if not on turn..
+                logger.info("{} player captures warrior on field {}.{}".format("Local" if not self.on_turn else "Opponent", self.y_to, self.x_to + 1))
 
         # capture left
         if self.x_to - 2 >= 0:
             if surrounded(self.pf[self.y_to][self.x_to - 1], self.pf[self.y_to][self.x_to - 2]):
                 self.pf[self.y_to][self.x_to - 1] = Square.F_EMPTY
-                logger.info("{} player captures warrior on field {}.{}".format(
-                    "Local" if not self.on_turn else "Opponent", self.y_to, self.x_to - 1))
+                logger.info("{} player captures warrior on field {}.{}".format("Local" if not self.on_turn else "Opponent", self.y_to, self.x_to - 1))
 
         # capture down
         if self.y_to + 2 < Hnefatafl._SIZE:
             if surrounded(self.pf[self.y_to + 1][self.x_to], self.pf[self.y_to + 2][self.x_to]):
                 self.pf[self.y_to + 1][self.x_to] = Square.F_EMPTY
-                logger.info("{} player captures warrior on field {}.{}".format(
-                    "Local" if not self.on_turn else "Opponent", self.y_to + 1, self.x_to))
+                logger.info("{} player captures warrior on field {}.{}".format("Local" if not self.on_turn else "Opponent", self.y_to + 1, self.x_to))
 
         # capture up
         if self.y_to - 2 >= 0:
             if surrounded(self.pf[self.y_to - 1][self.x_to], self.pf[self.y_to - 2][self.x_to]):
                 self.pf[self.y_to - 1][self.x_to] = Square.F_EMPTY
-                logger.info("{} player captures warrior on field {}.{}".format(
-                    "Local" if not self.on_turn else "Opponent", self.y_to - 1, self.x_to))
+                logger.info("{} player captures warrior on field {}.{}".format("Local" if not self.on_turn else "Opponent", self.y_to - 1, self.x_to))
 
         # reset last move to position
         self.x_to = None
         self.y_to = None
 
     def is_surrounded_black(self, field_adjacent, field_ally):
-        return field_adjacent == Square.S_BLACK \
-               and (field_ally == Square.S_WHITE
-                    or field_ally == Square.F_THRONE
-                    or field_ally == Square.F_ESCAPE)
+        return field_adjacent == Square.S_BLACK and field_ally in (Square.S_WHITE, Square.F_THRONE, Square.F_ESCAPE)
 
     def is_surrounded_white(self, field_adjacent, field_ally):
-        return field_adjacent == Square.S_WHITE and field_ally == Square.S_BLACK
+        return field_adjacent == Square.S_WHITE and field_ally in (Square.S_BLACK, Square.F_THRONE, Square.F_ESCAPE)
 
     def is_field(self, x_pos, y_pos):
         return self.pf[y_pos][x_pos] in (Square.F_EMPTY, Square.F_THRONE, Square.F_ESCAPE)

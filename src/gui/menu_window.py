@@ -1,7 +1,7 @@
 import re
 import tkinter as tk
 
-from app.net import protocol
+from net import protocol
 
 
 class Menu(tk.Frame):
@@ -92,41 +92,41 @@ class Menu(tk.Frame):
                     and re.fullmatch(Menu._REG_IP, ip) \
                     and int(port):
                 # connect to server
-                self.set_state("connecting to server...")
+                self.set_lbl_state("Connecting to server...")
                 self._controller.hnef_connect(nick, ip, port)
 
             else:
-                self.btns_disable()
+                self.btn_connect_disable()
 
         except ValueError:
-            self.btns_disable()
+            self.btn_connect_disable()
 
     def hnef_play(self):
-        self.set_state("waiting for opponent...")
+        self.set_lbl_state("Waiting for opponent...")
         self._controller.send_to_server(protocol.CC_READY)
 
-    def set_state(self, msg):
+    def set_lbl_state(self, msg):
         self._lbl_state["text"] = msg
 
     def check_nick(self, _):
         if re.fullmatch(Menu._REG_NICK, self._ent_nick.get()):
             self._ok_nick = True
             self._lbl_nick.pack_forget()
-            self.btns_enable()
+            self.btn_connect_enable()
         else:
             self._ok_nick = False
             self._lbl_nick.pack()
-            self.btns_disable()
+            self.btn_connect_disable()
 
     def check_ip(self, _):
         if re.fullmatch(Menu._REG_IP, self._ent_ip.get()):
             self._ok_ip = True
             self._lbl_ip.pack_forget()
-            self.btns_enable()
+            self.btn_connect_enable()
         else:
             self._ok_ip = False
             self._lbl_ip.pack()
-            self.btns_disable()
+            self.btn_connect_disable()
 
     def check_port(self, _):
         try:
@@ -137,17 +137,21 @@ class Menu(tk.Frame):
         if Menu._PORT_LOW <= port <= Menu._PORT_HIGH:
             self._ok_port = True
             self._lbl_port.pack_forget()
-            self.btns_enable()
+            self.btn_connect_enable()
         else:
             self._ok_port = False
             self._lbl_port.pack()
-            self.btns_disable()
+            self.btn_connect_disable()
 
-    def btns_enable(self):
+    def btn_connect_enable(self):
         if self._ok_nick and self._ok_ip and self._ok_port:
             self._btn_connect["state"] = tk.NORMAL
-            self._btn_play["state"] = tk.NORMAL
 
-    def btns_disable(self):
+    def btn_play_enable(self):
+        self._btn_play["state"] = tk.NORMAL
+
+    def btn_connect_disable(self):
         self._btn_connect["state"] = tk.DISABLED
+
+    def btn_play_disable(self):
         self._btn_play["state"] = tk.DISABLED

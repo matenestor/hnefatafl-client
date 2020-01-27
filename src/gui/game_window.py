@@ -1,20 +1,22 @@
 import re
 import tkinter as tk
 try:
+    import os
+    os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
     import pygame
     MIXER = True
 except (ImportError, ModuleNotFoundError):
     MIXER = False
 
-from app import logger
-from app.net import protocol
-from app.game.hnefatafl_square import Square
-from app.gui.click_state import Click
+import logger
+from net import protocol
+from game.hnefatafl_square import Square
+from gui.click_state import Click
 
 
 class Game(tk.Frame):
     # sprites location
-    _RES = "resources/"
+    _RES = "../resources/"
     _R_PF = _RES + "pf.gif"
     _R_EMPTY = _RES + "empty.gif"
     _R_ESCAPE = _RES + "escape.gif"
