@@ -127,7 +127,7 @@ class Network(Thread):
             if self.buffer != "{<}" and self.buffer != "{>}":
                 logger.debug("received [{}] from [{}]".format(self.buffer, self.sess.sock.getpeername()))
 
-        except (ConnectionAbortedError, OSError):
+        except (ConnectionAbortedError, OSError, UnicodeDecodeError):
             self.sess.stop()
             self.sess.status = ServerConnection.LOST
             logger.error("Unable to receive data from server.")

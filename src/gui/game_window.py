@@ -4,8 +4,9 @@ try:
     import os
     os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
     import pygame
+    pygame.mixer.init()
     MIXER = True
-except (ImportError, ModuleNotFoundError):
+except (ImportError, ModuleNotFoundError, pygame.error):
     MIXER = False
 
 import logger
@@ -66,7 +67,6 @@ class Game(tk.Frame):
 
         # prepare sound for easter egg
         if MIXER:
-            pygame.mixer.init()
             self.baz = pygame.mixer.Sound(Game._R_BAZINGA)
         else:
             self.baz = None
