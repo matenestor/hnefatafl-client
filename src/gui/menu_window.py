@@ -70,9 +70,6 @@ class Menu(tk.Frame):
         self._ent_port.pack(fill=tk.X, expand=True)
         self._ent_port.bind("<FocusOut>", self.check_port)
 
-        # fill box
-        tk.Frame(self).pack(fill=tk.Y, expand=True)
-
         # state label
         self._lbl_state.pack()
 

@@ -35,7 +35,7 @@ class Game(tk.Frame):
     # chat template for nicks
     CH_TMPL = "[{}]: "
     # chat name for system messages
-    _CH_BOT = CH_TMPL.format("BOT")
+    CH_BOT = CH_TMPL.format("BOT")
 
     # border of playfield desk
     _OFFSET = 21
@@ -99,7 +99,6 @@ class Game(tk.Frame):
         self._ent_chat.grid(row=1, column=1, columnspan=4, sticky="ew")
         self._ent_chat.bind("<Return>", self._chat)
         self._btn_chat.grid(row=2, column=1, columnspan=3, sticky="ew")
-        self.chat_insert(Game._CH_BOT + "Only letters, numbers and _.!? characters allowed during chatting.")
 
         # leave game button
         self._btn_leave.grid(row=2, column=4, sticky="ew")
@@ -108,7 +107,7 @@ class Game(tk.Frame):
         # get text from entry
         msg = self._ent_chat.get()
         # filter from unwanted characters
-        msg = re.sub(r"[^\w\s.!?]+", " ", msg).strip()
+        msg = re.sub(r"[^a-zA-Z0-9\s.!?]+", " ", msg).strip()
 
         if msg == "iddqd":
             self._egg = not self._egg
@@ -128,12 +127,15 @@ class Game(tk.Frame):
         self._txt_chat["state"] = tk.NORMAL
         self._txt_chat.insert(tk.END, msg + "\n")
         self._txt_chat["state"] = tk.DISABLED
-        logger.info("Chat message: {}".format(msg))
+        logger.trace("Chat message: {}".format(msg))
+
+    def chat_clear(self):
+        self._txt_chat.delete(1.0, tk.END)
+        self.chat_insert(Game.CH_BOT + "Only letters, numbers and _.!? characters allowed during chatting.")
 
     def leave_game(self):
-        self._controller.send_to_server(protocol.CC_LEAV)
         self._controller.leave_game()
-        logger.info("Local player {} leaves the game.".format(self.chat_nick_self))
+        logger.trace("Local player {} leaves the game.".format(self.chat_nick_self))
 
     def _click(self, event):
         # calculate position of field from clicked place on screen

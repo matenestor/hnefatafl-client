@@ -44,7 +44,7 @@ class Hnefatafl:
     def quit_game(self):
         logger.info("Quitting game with [{}].".format(self.nick_opponent))
 
-        self.on_turn = ""
+        self.on_turn = None
         self.nick_opponent = ""
         self.black = None
         self.game_state = None
@@ -79,10 +79,9 @@ class Hnefatafl:
             [Square.F_ESCAPE, Square.F_EMPTY, Square.F_EMPTY, Square.S_BLACK, Square.S_BLACK, Square.S_BLACK, Square.S_BLACK, Square.S_BLACK, Square.F_EMPTY, Square.F_EMPTY, Square.F_ESCAPE]
         ]
 
-    def _recover_pf(self, pf):
+    def _recover_pf(self, pf_str):
         # convert ints to Enum values
-        for i, square_val in enumerate(pf):
-            pf[i] = Square(square_val)
+        pf = [Square(int(square_val)) for square_val in pf_str]
 
         # reshape 1D list to 2D list
         self.pf = [pf[i:i + Hnefatafl._SIZE] for i in range(0, len(pf), Hnefatafl._SIZE)]
@@ -98,7 +97,7 @@ class Hnefatafl:
             if y_from == Hnefatafl._SIZE // 2 and x_from == Hnefatafl._SIZE // 2 \
             else Square.F_EMPTY
 
-        # set last move
+        # cache last move
         self.x_to = x_to
         self.y_to = y_to
 
@@ -109,6 +108,10 @@ class Hnefatafl:
         else:
             self.game_state = Click.THINKING
             logger.info("Opponent move: from {}.{} to {}.{}".format(x_from, y_from, x_to, y_to))
+
+        # forget form move -- not needed anymore
+        self.x_from = None
+        self.y_from = None
 
         # change turn after move
         self.on_turn = not self.on_turn

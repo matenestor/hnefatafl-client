@@ -12,6 +12,7 @@ class Popup(tk.Toplevel):
         self.title("Info message")
         self.geometry("320x160")
         self.resizable(False, False)
+        self.overrideredirect(True)
 
         # message in popup window
         self._lbl_message = tk.Label(self, text=msg)

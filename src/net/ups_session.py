@@ -18,6 +18,8 @@ class Session:
         self.sock = None
 
     def start(self, ip, port):
+        logger.info("Starting session.")
+
         # set connection values
         self.ip_addr = ip
         self.port = port
@@ -30,11 +32,15 @@ class Session:
         return self.sock is not None
 
     def restart(self):
+        logger.info("Restarting session.")
+
         # restart socket and connect again
         self._socket_restart()
         self._connect_to_server()
 
     def stop(self):
+        logger.info("Stopping session.")
+
         self._socket_close()
 
     def _socket_create(self):
@@ -51,6 +57,7 @@ class Session:
 
     def _connect_to_server(self):
         try:
+            self.sock.settimeout(3)
             self.sock.connect((self.ip_addr, self.port))
             self.status = ServerConnection.UP
 
@@ -61,6 +68,11 @@ class Session:
             self._socket_close()
             self.status = ServerConnection.DOWN
             logger.info("Connection to server with ip [{}] on port [{}] refused.".format(self.ip_addr, self.port))
+
+        except (TimeoutError, socket.timeout):
+            self._socket_close()
+            self.status = ServerConnection.DOWN
+            logger.info("Connection to server with ip [{}] on port [{}] timeout.".format(self.ip_addr, self.port))
 
         except InterruptedError:
             self._socket_close()

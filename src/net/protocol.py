@@ -35,9 +35,9 @@ SC_NICK_USED = "u"          # nick is already used
 SC_KICK = "k"               # kick client
 SC_SHDW = "s"               # server shutdown
 
-RGX_VALID_FORMAT = "(?:\{(?:<|>|rc|rr,il|rr,ig,(?:ty|to),on:\w{3,20},pf:\d{100}|rl|il|ig,(?:ty|to),on:\w{3,20}|mv|gw|gl|om:\d{8}|ol|od|or|og|t|u|k|s|ch:[\w\s.!?]{1,100})\})+"
-RGX_DATA = "<|>|rc|rr,il|rr,ig,(?:ty|to),on:\w{3,20},pf:\d{100}|rl|il|ig,(?:ty|to),on:\w{3,20}|mv|gw|gl|om:\d{8}|ol|od|or|og|t|u|k|s|ch:[\w\s.!?]{1,100}"
+RGX_VALID_FORMAT = "(?:\{(?:<|>|rc|rr,il|rr,ig,(?:ty|to),on:\w{3,20},pf:\d{121}|rl|il|ig,(?:ty|to),on:\w{3,20}|mv|gw|gl|om:\d{8}|ol|os|od|or|og|t|u|k|s|ch:[\w\s.!?]{1,100})\})+"
+RGX_DATA =                 "<|>|rc|rr,il|rr,ig,(?:ty|to),on:\w{3,20},pf:\d{121}|rl|il|ig,(?:ty|to),on:\w{3,20}|mv|gw|gl|om:\d{8}|ol|os|od|or|og|t|u|k|s|ch:[\w\s.!?]{1,100}"
 RGX_ELMS = "[,:]+"
 
-# server regex -- valid format: (?:\{(?:<|>|c:\w{3,20}|rd|m:\d{8}|l|ok|ch:[\w\s.!?]{1,100})\})+
-# server regex -- valid data:           <|>|c:\w{3,20}|rd|m:\d{8}|l|ok|ch:[\w\s.!?]{1,100}    ..in curly brackets
+# server regex -- valid format: (?:\{(?:<|>|c:\w{3,20}|rd|m:\d{8}|l|ok|ch:[a-zA-Z0-9\s.!?]{1,100})\})+
+# server regex -- valid data:           <|>|c:\w{3,20}|rd|m:\d{8}|l|ok|ch:[a-zA-Z0-9\s.!?]{1,100}    ..in curly brackets

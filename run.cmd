@@ -1,3 +1,5 @@
 call venv/Scripts/activate.bat
-python src/main.py
+cd src
+python main.py
+cd ..
 call venv/Scripts/deactivate.bat

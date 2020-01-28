@@ -10,11 +10,13 @@ from gui.click_state import Click
 
 class Application:
     def __init__(self):
-        # register ctrl+c event
+        # register signal handler
         signal.signal(signal.SIGINT, self._signal_handler)
+        signal.signal(signal.SIGTERM, self._signal_handler)
 
-        # flag for activity before ctrl+c
+        # flag for activity before quit
         self.is_running = True
+        self.is_sig = False
 
         # user's attributes
         self.nick = None
@@ -32,7 +34,9 @@ class Application:
 
     def _signal_handler(self, sig, frame):
         self.is_running = False
-        logger.info("Closing client with ctrl+c.")
+        self.is_sig = True
+        self.gui.destroy()
+        logger.info("Closing client with signal.")
 
     def run(self):
         # start network
@@ -44,7 +48,9 @@ class Application:
 
         # if windows was closed with button or cross, set flag in standard way
         self.is_running = False
-        logger.info("Closing client standard way.")
+
+        if not self.is_sig:
+            logger.info("Closing client standard way.")
 
         # notify network thread, in order to end it
         with self.net.cv:
@@ -57,33 +63,41 @@ class Application:
 
     def hnef_connect(self, nick, ip, port):
         self.nick = nick
-        self.ip = ip
+        self.ip = "127.0.0.1" if ip == "localhost" else ip
         self.port = int(port)
 
         # connect to server
-        connected = self.net.connect(self.nick, self.ip, self.port)
+        self.net.connect(self.nick, self.ip, self.port)
 
-        if connected:
-            self.gui.make_connected()
-        else:
-            self.gui.make_disconnected()
+    def gui_connected(self):
+        self.gui.make_connected()
+
+    def gui_disconnected(self):
+        self.gui.make_disconnected()
 
     def send_to_server(self, code, value=None):
         self.net.send_msg(code, value)
 
-    def send_to_chat(self, msg):
-        self.gui.chat_opponent(msg, self.hnef.nick_opponent)
+    def send_to_chat(self, msg, bot):
+        self.gui.chat_msg_server(msg, bot, self.hnef.nick_opponent)
 
     def send_to_menu(self, msg):
         self.gui.set_state(msg)
 
-    def _start_game(self, turn, opn_name):
+    def is_in_game(self):
+        # True, if somebody is on turn -- means game is on
+        return self.hnef.on_turn is not None
+
+    def start_game(self, turn, opn_name):
         # start new game in Hnefatafl class
         self.hnef.new_game(turn, opn_name)
         # switch frame in GUI, so user can play
         self.gui.new_game(self.nick, self.hnef.game_state, self.hnef.pf, self.hnef.allowed_squares)
+        # tell player, who is on turn
+        self.send_to_chat("'{}' is black and on turn.".format(self.nick if turn else opn_name), bot=True)
 
     def leave_game(self):
+        self.send_to_server(protocol.CC_LEAV)
         self.hnef.quit_game()
 
     def reset_game(self, turn, nick_opn, pf):
@@ -92,7 +106,14 @@ class Application:
         # not actually new game -- it has state like in received message from server
         self.gui.new_game(self.nick, self.hnef.game_state, self.hnef.pf, self.hnef.allowed_squares)
 
+    def quit_game(self, result):
+        # quit game after game-over
+        self.hnef.quit_game()
+        self.gui.quit_game(result)
+
     def handle_click(self, x_pos, y_pos):
+        redraw = True
+
         # playfield have not been clicked
         if self.hnef.game_state == Click.THINKING:
             # find fields where player may move after click on stone
@@ -108,16 +129,16 @@ class Application:
         elif self.hnef.game_state == Click.CLICKED:
             # field without stone have been clicked -- make a move
             if self.hnef.is_field(x_pos, y_pos):
-                # move with stone
-                self.move_self(self.hnef.x_from, self.hnef.y_from, x_pos, y_pos)
-
                 # send move message to server
                 move = self.compose_move_msg([self.hnef.x_from, self.hnef.y_from, x_pos, y_pos])
                 self.send_to_server(protocol.CC_MOVE, value=move)
 
-                # reset position, which is being moved from
-                self.hnef.x_from = None
-                self.hnef.y_from = None
+                # save also position which is being moved to and move after server's confirmation of valid move
+                self.hnef.x_to = x_pos
+                self.hnef.y_to = y_pos
+
+                # playfield is updated and redrawn after server's MOVE_VALID message
+                redraw = False
 
             # field with same stone have been clicked -- go back to thinking state
             elif self.hnef.is_same_stone(x_pos, y_pos):
@@ -142,17 +163,21 @@ class Application:
                 self.hnef.y_from = y_pos
 
         # update playfield in gui
-        self.gui.pf_update(self.hnef.game_state, self.hnef.pf, self.hnef.allowed_squares)
+        if redraw:
+            self.gui.pf_update(self.hnef.game_state, self.hnef.pf, self.hnef.allowed_squares)
 
-    def move_self(self, x_from, y_from, x_to, y_to):
-        # move chosen stone
-        self.hnef.move(x_from, y_from, x_to, y_to)
+    def move_self(self):
+        # move chosen stone (after server confirmation -- so use cached values)
+        self.hnef.move(self.hnef.x_from, self.hnef.y_from, self.hnef.x_to, self.hnef.y_to)
         # check captures of local player -- capturing white if local is black
         self.hnef.check_captures(self.hnef.is_surrounded_white if self.hnef.black else self.hnef.is_surrounded_black)
         # after move, player cannot move anything
         self.hnef.allowed_squares.clear()
 
-    def _move_opponent(self, x_from, y_from, x_to, y_to):
+        # update playfield in gui
+        self.gui.pf_update(self.hnef.game_state, self.hnef.pf, self.hnef.allowed_squares)
+
+    def move_opponent(self, x_from, y_from, x_to, y_to):
         # move opponent's piece
         self.hnef.move(x_from, y_from, x_to, y_to)
         # check captures of opponent player -- capturing black if local is black
@@ -161,7 +186,7 @@ class Application:
         self.hnef.find_movables_stones()
 
         # update playfield in gui
-        self.gui.pf_update(self.hnef.pf, self.hnef.allowed_squares)
+        self.gui.pf_update(self.hnef.game_state, self.hnef.pf, self.hnef.allowed_squares)
 
     def compose_move_msg(self, coordinates):
         move = ""
