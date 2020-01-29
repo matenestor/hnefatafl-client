@@ -31,7 +31,7 @@ class Game(tk.Frame):
     _R_BLACKEGG = _RES + "blackegg.gif"
     _R_WHITEEGG = _RES + "whiteegg.gif"
     _R_KINGEGG = _RES + "kingegg.gif"
-    _R_BAZINGA = _RES + "bazinga.wav"
+    _R_BAZINGA = _RES + "sound.wav"
 
     # chat template for nicks
     CH_TMPL = "[{}]: "
