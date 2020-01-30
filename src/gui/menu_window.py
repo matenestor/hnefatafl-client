@@ -13,7 +13,7 @@ class Menu(tk.Frame):
     # no '\w', in order to prevent diacritics and underscore
     _REG_NICK = r"[a-zA-Z0-9]{3,20}"
     _PORT_LOW = 1024
-    _PORT_HIGH = 49151
+    _PORT_HIGH = 65535
 
     def __init__(self, parent, cont):
         # TO-DO longterm: i don't know why, but setting size of the frame has no effect
@@ -42,7 +42,7 @@ class Menu(tk.Frame):
         # port
         self._grp_port = tk.LabelFrame(self, text="Port", padx=Menu._PADX, pady=Menu._PADY)
         self._ent_port = tk.Entry(self._grp_port)
-        self._lbl_port = tk.Label(self._grp_port, text="Port range: 1024-49151.")
+        self._lbl_port = tk.Label(self._grp_port, text="Port range: 1024-65535.")
 
         # state label
         self._lbl_state = tk.Label(self)
