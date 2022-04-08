@@ -6,7 +6,7 @@ try:
     import pygame
     pygame.mixer.init()
     MIXER = True
-except (ImportError, ModuleNotFoundError, pygame.error):
+except (ImportError, ModuleNotFoundError):
     MIXER = False
 
 import logger
